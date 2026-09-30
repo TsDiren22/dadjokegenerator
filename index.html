@@ -1,0 +1,857 @@
+<title>The Groan Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;0,6..96,900;1,6..96,700&family=Cinzel:wght@400;700;900&display=swap">
+
+<style>
+  :root{
+    --velvet:#0A0705;
+    --velvet-2:#1A1008;
+    --gold:#D4A128;
+    --gold-lit:#F7DE9B;
+    --gold-deep:#8A5F12;
+    --ruby:#8C1C13;
+    --cream:#FFF6E2;
+    --display:"Bodoni Moda", "Didot", "Times New Roman", serif;
+    --plate:"Cinzel", "Trajan Pro", Georgia, serif;
+  }
+
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(120% 90% at 50% 8%, #2A1A0C 0%, #140D06 42%, var(--velvet) 78%),
+      var(--velvet);
+    color:var(--cream);
+    font-family:var(--display);
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  #weave{
+    position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.018) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(-45deg, rgba(0,0,0,.25) 0 3px, transparent 3px 6px);
+  }
+  #vignette{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    box-shadow: inset 0 0 26vmin 6vmin rgba(0,0,0,.85);
+  }
+
+  .bulbs{position:fixed; z-index:3; pointer-events:none;}
+  .bulbs.h{left:0; right:0; height:14px;}
+  .bulbs.v{top:0; bottom:0; width:14px;}
+  .bulbs.t{top:calc(6px + env(safe-area-inset-top,0px));}
+  .bulbs.b{bottom:calc(6px + env(safe-area-inset-bottom,0px));}
+  .bulbs.l{left:6px;} .bulbs.r{right:6px;}
+  .bulbs.h::before,.bulbs.h::after,.bulbs.v::before,.bulbs.v::after{
+    content:""; position:absolute; inset:0;
+  }
+  .bulbs.h::before{
+    background:radial-gradient(circle at 7px 7px, var(--gold-lit) 0 3px, rgba(212,161,40,.22) 3.5px, transparent 4.6px);
+    background-size:28px 14px;
+  }
+  .bulbs.h::after{
+    background:radial-gradient(circle at 21px 7px, var(--gold-lit) 0 3px, rgba(212,161,40,.22) 3.5px, transparent 4.6px);
+    background-size:28px 14px;
+  }
+  .bulbs.v::before{
+    background:radial-gradient(circle at 7px 7px, var(--gold-lit) 0 3px, rgba(212,161,40,.22) 3.5px, transparent 4.6px);
+    background-size:14px 28px;
+  }
+  .bulbs.v::after{
+    background:radial-gradient(circle at 7px 21px, var(--gold-lit) 0 3px, rgba(212,161,40,.22) 3.5px, transparent 4.6px);
+    background-size:14px 28px;
+  }
+  .bulbs::before{animation:chase 1.1s steps(1,end) infinite;}
+  .bulbs::after{animation:chase 1.1s steps(1,end) infinite reverse;}
+  @keyframes chase{
+    0%,49%{opacity:1; filter:drop-shadow(0 0 6px rgba(247,222,155,.9));}
+    50%,100%{opacity:.22; filter:none;}
+  }
+
+  #stage{
+    position:fixed; inset:0; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #stage.shake{animation:shake .42s cubic-bezier(.36,.07,.19,.97) both;}
+  @keyframes shake{
+    10%,90%{transform:translate3d(-3px,1px,0) rotate(-.3deg);}
+    20%,80%{transform:translate3d(6px,-3px,0) rotate(.5deg);}
+    30%,50%,70%{transform:translate3d(-11px,4px,0) rotate(-.8deg);}
+    40%,60%{transform:translate3d(11px,-4px,0) rotate(.8deg);}
+  }
+
+  canvas.fx{position:fixed; inset:0; width:100%; height:100%; pointer-events:none;}
+  #fxBack{z-index:2;}
+  #fxFront{z-index:30;}
+
+  header{
+    position:fixed; z-index:20; left:0; right:0;
+    top:calc(env(safe-area-inset-top,0px) + 24px);
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:0 24px; pointer-events:none; text-align:center;
+  }
+  .eyebrow{
+    font-family:var(--plate); font-weight:700; font-size:.62rem;
+    letter-spacing:.42em; text-transform:uppercase;
+    color:var(--gold); text-indent:.42em;
+  }
+  h1{
+    margin:0; font-family:var(--display); font-weight:900; font-style:italic;
+    font-size:clamp(1.5rem,5.2vw,2.9rem); line-height:1; text-wrap:balance;
+    background:linear-gradient(176deg,#FFF3CE 6%,var(--gold-lit) 28%,var(--gold) 52%,var(--gold-deep) 70%,var(--gold-lit) 92%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(212,161,40,.35));
+  }
+
+  #jokeWrap{
+    position:fixed; z-index:22; left:50%; transform:translateX(-50%);
+    top:calc(env(safe-area-inset-top,0px) + 104px);
+    width:min(760px, calc(100vw - 48px));
+    display:flex; justify-content:center; pointer-events:none;
+  }
+  #joke{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(1.1rem,3.3vw,2rem); line-height:1.28;
+    text-wrap:balance; color:var(--cream); text-align:center;
+    text-shadow:0 2px 0 rgba(0,0,0,.75), 0 0 34px rgba(212,161,40,.28);
+    padding:18px 26px; border-radius:2px;
+    background:linear-gradient(180deg, rgba(26,16,8,.84), rgba(10,7,5,.74));
+    border-top:1px solid rgba(212,161,40,.42);
+    border-bottom:1px solid rgba(212,161,40,.42);
+    box-shadow:0 18px 60px rgba(0,0,0,.6);
+    max-height:32vh; overflow:auto;
+  }
+  #joke.swap{animation:swap .42s cubic-bezier(.2,.9,.2,1) both;}
+  @keyframes swap{
+    0%{opacity:0; transform:translateY(-14px) scale(.94) rotate(-1.2deg); filter:blur(6px);}
+    100%{opacity:1; transform:none; filter:blur(0);}
+  }
+
+  #btn{
+    position:fixed; left:50%; top:54%;
+    --base:300px; --tx:0px; --ty:0px; --sc:1; --rot:0deg;
+    transform:translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(var(--sc)) rotate(var(--rot));
+    width:var(--base); height:var(--base);
+    border-radius:50%; border:none; cursor:pointer; z-index:10;
+    display:grid; place-items:center; padding:0;
+    font-family:var(--plate); font-weight:900; color:#2B1A02;
+    font-size:calc(var(--base) * .105); letter-spacing:.14em; line-height:1.15;
+    text-transform:uppercase; text-align:center;
+    background:
+      radial-gradient(circle at 34% 26%, #FFF6D0 0%, var(--gold-lit) 16%, var(--gold) 44%, #9C6D14 72%, #5E3E06 100%);
+    box-shadow:
+      inset 0 -10px 26px rgba(70,44,0,.7),
+      inset 0 10px 22px rgba(255,248,210,.6),
+      0 0 0 6px #2A1A08,
+      0 0 0 9px var(--gold-deep),
+      0 26px 70px rgba(0,0,0,.75),
+      0 0 70px rgba(212,161,40,.35);
+    transition:filter .12s ease;
+    will-change:transform;
+  }
+  #btn span{display:block; text-indent:.14em; padding:0 10%;}
+  #btn:active{filter:brightness(1.18);}
+  #btn:focus-visible{outline:4px dashed var(--cream); outline-offset:14px;}
+  #btn.flying{cursor:crosshair;}
+
+  #boom{
+    position:fixed; left:50%; top:54%; z-index:28;
+    transform:translate(-50%,-50%) scale(.2); opacity:0;
+    font-family:var(--plate); font-weight:900; color:#FFF0BE;
+    font-size:clamp(3rem,15vw,10rem); letter-spacing:.06em;
+    text-shadow:0 0 6px #FF7A1A, 0 0 30px #FF3B00, 8px 8px 0 var(--ruby);
+    pointer-events:none;
+  }
+  #boom.go{animation:boom .5s ease-out both;}
+  @keyframes boom{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.2) rotate(-14deg);}
+    22%{opacity:1; transform:translate(-50%,-50%) scale(1.14) rotate(5deg);}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(1.5) rotate(-3deg);}
+  }
+  #strobe{
+    position:fixed; inset:0; z-index:27; pointer-events:none; opacity:0;
+    background:linear-gradient(120deg,#FF004D,#FF8A00,#FFE600,#00E676,#00B0FF,#B14CFF,#FF004D);
+    background-size:400% 400%; mix-blend-mode:screen;
+  }
+  #strobe.go{animation:strobe .46s linear both;}
+  @keyframes strobe{
+    0%{opacity:0;background-position:0% 50%;}
+    12%{opacity:.5;} 26%{opacity:.08;} 40%{opacity:.42;}
+    58%{opacity:.06;} 74%{opacity:.3;} 100%{opacity:0;background-position:100% 50%;}
+  }
+
+  footer{
+    position:fixed; z-index:24; left:0; right:0;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+    display:flex; align-items:center; justify-content:center; gap:10px 20px;
+    flex-wrap:wrap; padding:0 24px;
+  }
+  .counter{
+    font-family:var(--plate); font-weight:700; font-size:.72rem;
+    letter-spacing:.3em; text-transform:uppercase; color:var(--gold);
+    text-indent:.3em; font-variant-numeric:tabular-nums;
+  }
+  .counter b{color:var(--cream); font-size:.98rem;}
+  .ghost{
+    font-family:var(--plate); font-weight:700; font-size:.64rem;
+    letter-spacing:.24em; text-transform:uppercase; text-indent:.24em;
+    color:var(--gold); background:rgba(26,16,8,.8);
+    border:1px solid rgba(212,161,40,.5); border-radius:999px;
+    padding:9px 18px; cursor:pointer;
+  }
+  .ghost:hover{background:rgba(212,161,40,.16); color:var(--gold-lit);}
+  .ghost:focus-visible{outline:2px solid var(--cream); outline-offset:3px;}
+  .hint{
+    font-family:var(--plate); font-size:.6rem; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(212,161,40,.66); text-indent:.24em;
+  }
+
+  #mute{
+    position:fixed; z-index:26;
+    top:calc(env(safe-area-inset-top,0px) + 22px); right:22px;
+  }
+
+  @media (max-width:620px){
+    #jokeWrap{top:calc(env(safe-area-inset-top,0px) + 92px);}
+    #joke{padding:14px 18px;}
+    #mute{top:auto; bottom:calc(env(safe-area-inset-bottom,0px) + 74px); right:50%; transform:translateX(50%);}
+    footer{bottom:calc(env(safe-area-inset-bottom,0px) + 18px);}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #stage.shake{animation:none;}
+    #strobe.go{animation:none;}
+    .bulbs::before,.bulbs::after{animation:none; opacity:.85;}
+  }
+</style>
+
+<div id="weave"></div>
+<div class="bulbs h t"></div>
+<div class="bulbs h b"></div>
+<div class="bulbs v l"></div>
+<div class="bulbs v r"></div>
+<div id="vignette"></div>
+
+<canvas id="fxBack" class="fx"></canvas>
+
+<header>
+  <div class="eyebrow">Established this afternoon</div>
+  <h1>The Groan Machine</h1>
+</header>
+
+<div id="jokeWrap"><div id="joke">Press the enormous gold button. Regret is part of the experience.</div></div>
+
+<div id="stage">
+  <button id="btn" type="button" aria-label="Dispense a dad joke"><span>Press for<br>a joke</span></button>
+</div>
+
+<div id="boom">BOOM!</div>
+<div id="strobe"></div>
+<canvas id="fxFront" class="fx"></canvas>
+
+<button id="mute" class="ghost" type="button" aria-pressed="false">Sound on</button>
+
+<footer>
+  <div class="counter">Jokes endured <b id="count">0</b></div>
+  <div class="hint" id="hint">It inflates. Eventually it lets go.</div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var JOKES = [
+    "I'm afraid for the calendar. Its days are numbered.",
+    "Why do fathers take an extra pair of socks golfing? In case they get a hole in one.",
+    "What do you call a fish with no eyes? A fsh.",
+    "I only know 25 letters of the alphabet. I don't know y.",
+    "What do you call a factory that makes okay products? A satisfactory.",
+    "Why don't eggs tell jokes? They'd crack each other up.",
+    "I used to hate facial hair, but then it grew on me.",
+    "What did the ocean say to the beach? Nothing, it just waved.",
+    "Why did the scarecrow win an award? He was outstanding in his field.",
+    "I'm reading a book about anti-gravity. It's impossible to put down.",
+    "Did you hear about the restaurant on the moon? Great food, no atmosphere.",
+    "What do you call cheese that isn't yours? Nacho cheese.",
+    "How do you organize a space party? You planet.",
+    "Why can't you give Elsa a balloon? She'll let it go.",
+    "What do you call a belt made of watches? A waist of time.",
+    "I made a pencil with two erasers. It was pointless.",
+    "Why did the coffee file a police report? It got mugged.",
+    "What's brown and sticky? A stick.",
+    "I'd tell you a construction joke, but I'm still working on it.",
+    "Why don't skeletons fight each other? They don't have the guts.",
+    "What did the janitor say when he jumped out of the closet? Supplies!",
+    "I ordered a chicken and an egg online. I'll let you know.",
+    "What do you call a bear with no teeth? A gummy bear.",
+    "Why did the bicycle fall over? It was two tired.",
+    "How does a penguin build its house? Igloos it together.",
+    "I'm on a seafood diet. I see food and I eat it.",
+    "What do you call a dinosaur with an extensive vocabulary? A thesaurus.",
+    "Why did the math book look so sad? It had too many problems.",
+    "What's the best thing about Switzerland? I don't know, but the flag is a big plus.",
+    "I told my wife she should embrace her mistakes. She gave me a hug.",
+    "Why do melons have weddings? Because they cantaloupe.",
+    "What do you call a pile of cats? A meowtain.",
+    "What did one wall say to the other? I'll meet you at the corner.",
+    "Why was the broom late? It over-swept.",
+    "How do you make holy water? You boil the hell out of it.",
+    "What do you call a sleeping bull? A bulldozer.",
+    "I used to be addicted to soap, but I'm clean now.",
+    "What do you call a cow with no legs? Ground beef.",
+    "Why can't a nose be 12 inches long? Because then it'd be a foot.",
+    "I got a job at a bakery because I kneaded dough.",
+    "What kind of music do mummies listen to? Wrap.",
+    "Why did the tomato blush? It saw the salad dressing.",
+    "What do you call a fake noodle? An impasta.",
+    "How do you catch a squirrel? Climb a tree and act like a nut.",
+    "I'm terrified of elevators, so I'm taking steps to avoid them.",
+    "What did the buffalo say when his son left for college? Bison.",
+    "Why did the man run around his bed? To catch up on sleep.",
+    "What's orange and sounds like a parrot? A carrot.",
+    "I asked the librarian for books on paranoia. She whispered, they're right behind you.",
+    "Why don't scientists trust atoms? Because they make up everything.",
+    "What do you call a boomerang that doesn't come back? A stick.",
+    "How do trees access the internet? They log in.",
+    "Why did the stadium get hot after the game? All the fans left.",
+    "What do you call a dog that does magic? A labracadabrador.",
+    "I dropped my toast butter-side down. Low point in my day, high point in physics.",
+    "What do you call a man with a rubber toe? Roberto.",
+    "Why did the picture go to jail? It was framed.",
+    "I tried to catch fog yesterday. Mist.",
+    "What's a vampire's favorite fruit? A blood orange.",
+    "Why did the invisible man turn down the job? He couldn't see himself doing it.",
+    "What do you call a snowman with a six-pack? An abdominal snowman.",
+    "How do you fix a cracked pumpkin? With a pumpkin patch.",
+    "I named my dog Five Miles so I can tell people I walk Five Miles every day.",
+    "What did the grape say when it got stepped on? Nothing, it let out a little wine.",
+    "Why can't you hear a pterodactyl in the bathroom? Because the P is silent.",
+    "What's the difference between a hippo and a zippo? One's heavy, one's a little lighter.",
+    "I used to play piano by ear. Now I use my hands.",
+    "Why did the computer go to the doctor? It had a virus.",
+    "What do you call an alligator in a vest? An investigator.",
+    "I'd avoid the sushi if I were you. It's a little fishy.",
+    "Why do bees have sticky hair? They use honeycombs.",
+    "What did the zero say to the eight? Nice belt.",
+    "How do you make a tissue dance? Put a little boogie in it.",
+    "Why was the big cat disqualified from the race? Because it was a cheetah.",
+    "What do you call a group of musical whales? An orca-stra.",
+    "I burned 2000 calories today. I left the lasagna in the oven.",
+    "Why don't oysters share their pearls? Because they're shellfish.",
+    "What did the left eye say to the right eye? Between you and me, something smells.",
+    "How does the moon cut its hair? Eclipse it.",
+    "What do you call a pig that does karate? A pork chop.",
+    "I wanted to learn to drive stick, but I couldn't find a manual.",
+    "Why did the banana go to the doctor? It wasn't peeling well.",
+    "What's a skeleton's least favorite room? The living room.",
+    "How do you know there's an elephant under your bed? Your head hits the ceiling.",
+    "What do you call a nervous javelin thrower? Shakespeare.",
+    "I quit my job at the helium factory. I refuse to be spoken to in that tone.",
+    "Why did the cookie go to the nurse? It felt crummy.",
+    "What do you call a cow during an earthquake? A milkshake.",
+    "Why are frogs so happy? They eat whatever bugs them.",
+    "What did the traffic light say to the car? Don't look, I'm about to change.",
+    "My wife told me to stop impersonating a flamingo. I had to put my foot down.",
+    "What's a pirate's favorite letter? You'd think it's R, but his first love be the C.",
+    "What do you call a magician who lost their magic? Ian.",
+    "How do you talk to a giant? Use big words.",
+    "Why did the scarecrow become a therapist? He was great at helping people open up.",
+    "What did one plate say to the other? Dinner's on me.",
+    "I have a joke about time travel, but you didn't like it.",
+    "Why don't crabs give to charity? Because they're shellfish.",
+    "What do you call a deer with no eyes? No idea.",
+    "What do you call a deer with no eyes and no legs? Still no idea.",
+    "Why did the chicken join a band? It had the drumsticks.",
+    "What's a cat's favorite color? Purrple.",
+    "I told my suitcases we're not going on vacation. Now I've got emotional baggage.",
+    "What do you call a boat with a hole in it? A sinkhole.",
+    "Why did the orange stop halfway up the hill? It ran out of juice.",
+    "What do you get when you cross a snowman and a vampire? Frostbite.",
+    "Why did the man put his money in the freezer? He wanted cold hard cash.",
+    "What do you call a dinosaur that crashes his car? Tyrannosaurus wrecks.",
+    "How do you cut the sea in half? With a sea-saw.",
+    "Why did the phone wear glasses? It lost all its contacts.",
+    "What do you call a shoe made from a banana? A slipper.",
+    "I don't trust stairs. They're always up to something.",
+    "What kind of tree fits in your hand? A palm tree.",
+    "Why did the golf ball go to the doctor? It was feeling a little chipped.",
+    "What do you call a lazy kangaroo? A pouch potato.",
+    "Why did the egg go to school? To get eggucated.",
+    "What's the tallest building in the world? The library. It has the most stories.",
+    "I tried to write a joke about a pencil, but it had no point.",
+    "Why did the astronaut break up with his girlfriend? He needed space.",
+    "What do you call a duck that gets all A's? A wise quacker.",
+    "How do you make an octopus laugh? With ten-tickles.",
+    "Why was the math teacher suspicious of graph paper? It was plotting something.",
+    "What do you call a cold dog? A chili dog.",
+    "Why did the barber win the race? He knew a shortcut.",
+    "What do you call an apology written in dots and dashes? Remorse code.",
+    "Why was the man fired from the calendar factory? He took a couple of days off.",
+    "What's a ghost's favorite dessert? Boo-berry pie.",
+    "How do you stop a bull from charging? Cancel its credit card.",
+    "Why did the lettuce win? It was a head.",
+    "What do you call a fish wearing a bowtie? Sofishticated.",
+    "What did one hat say to the other? You stay here, I'll go on ahead.",
+    "Why are elevator jokes so good? They work on many levels.",
+    "What do you call a sad strawberry? A blueberry.",
+    "How does a scientist freshen her breath? With experi-mints.",
+    "Why did the teddy bear say no to dessert? She was stuffed.",
+    "What do you call a cow that plays an instrument? A moo-sician.",
+    "Why did the bee get married? He found his honey.",
+    "What do you call a train carrying bubblegum? A chew-chew train.",
+    "I asked my dog what's two minus two. He said nothing.",
+    "Why did the can crusher quit? It was soda pressing.",
+    "What do you call a rabbit with fleas? Bugs Bunny.",
+    "What do you call a knight who's afraid to fight? Sir Render.",
+    "Why did the paper go to the doctor? It was feeling a bit torn.",
+    "What did the big flower say to the little flower? Hi, bud.",
+    "Why do seagulls fly over the sea? If they flew over the bay they'd be bagels.",
+    "What do you call an elephant that doesn't matter? An irrelephant.",
+    "Why did the toilet paper roll down the hill? To get to the bottom.",
+    "What's a tree's favorite drink? Root beer.",
+    "I finally cleaned out my vacuum cleaner. Now it's a cleaner cleaner.",
+    "What do you call a group of disorganized cats? A cat-astrophe.",
+    "Why did the gym close down? It just didn't work out.",
+    "What do you call a pony with a sore throat? A little horse.",
+    "Why did the cow go to outer space? To see the moooon.",
+    "What did the drummer name his twin daughters? Anna One, Anna Two.",
+    "Why can't you trust an artist? They're always sketchy.",
+    "What do you call an angry carrot? A steamed veggie."
+  ];
+
+  var btn = document.getElementById('btn');
+  var joke = document.getElementById('joke');
+  var countEl = document.getElementById('count');
+  var hint = document.getElementById('hint');
+  var stage = document.getElementById('stage');
+  var boom = document.getElementById('boom');
+  var strobe = document.getElementById('strobe');
+  var muteBtn = document.getElementById('mute');
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var muted = false;
+  var jokes = 0;
+  var scale = 1;
+  var flying = false;
+  var bag = [];
+  var GROW = 1.085;
+
+  function baseSize(){
+    return Math.min(Math.min(window.innerWidth, window.innerHeight) * 0.40, 320);
+  }
+  function setBase(){ btn.style.setProperty('--base', baseSize() + 'px'); }
+  function capScale(){
+    return (0.9 * Math.min(window.innerWidth, window.innerHeight)) / baseSize();
+  }
+  setBase();
+
+  function nextJoke(){
+    if(!bag.length){
+      bag = JOKES.slice();
+      for(var i=bag.length-1;i>0;i--){
+        var j = (Math.random()*(i+1))|0, t = bag[i]; bag[i]=bag[j]; bag[j]=t;
+      }
+    }
+    return bag.pop();
+  }
+  function showJoke(){
+    joke.textContent = nextJoke();
+    joke.classList.remove('swap');
+    void joke.offsetWidth;
+    joke.classList.add('swap');
+    jokes++;
+    countEl.textContent = jokes;
+  }
+
+  /* ---------- audio ---------- */
+  var ac = null;
+  function audio(){
+    if(muted) return null;
+    if(!ac){
+      var C = window.AudioContext || window.webkitAudioContext;
+      if(!C) return null;
+      try { ac = new C(); } catch(e){ return null; }
+    }
+    if(ac.state === 'suspended'){ ac.resume(); }
+    return ac;
+  }
+  function noiseBuffer(ctx, secs){
+    var n = Math.floor(ctx.sampleRate * secs);
+    var b = ctx.createBuffer(1, n, ctx.sampleRate);
+    var d = b.getChannelData(0);
+    for(var i=0;i<n;i++){ d[i] = Math.random()*2-1; }
+    return b;
+  }
+  function sfxPop(strength){
+    var ctx = audio(); if(!ctx) return;
+    var t = ctx.currentTime;
+    var src = ctx.createBufferSource();
+    src.buffer = noiseBuffer(ctx, 0.5);
+    var bp = ctx.createBiquadFilter();
+    bp.type='bandpass'; bp.frequency.setValueAtTime(1600, t);
+    bp.frequency.exponentialRampToValueAtTime(280, t+0.32);
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.34*strength, t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.42);
+    src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+    src.start(t); src.stop(t+0.5);
+
+    var o = ctx.createOscillator(), og = ctx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(190, t);
+    o.frequency.exponentialRampToValueAtTime(42, t+0.3);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.4*strength, t+0.015);
+    og.gain.exponentialRampToValueAtTime(0.0001, t+0.36);
+    o.connect(og); og.connect(ctx.destination);
+    o.start(t); o.stop(t+0.4);
+  }
+  function sfxRimshot(){
+    var ctx = audio(); if(!ctx) return;
+    var t = ctx.currentTime;
+    [0, 0.09, 0.18].forEach(function(off, i){
+      var src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(ctx, 0.14);
+      var hp = ctx.createBiquadFilter();
+      hp.type='highpass'; hp.frequency.value = 900 + i*400;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t+off);
+      g.gain.exponentialRampToValueAtTime(0.17, t+off+0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+off+0.1);
+      src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+      src.start(t+off); src.stop(t+off+0.14);
+
+      var o = ctx.createOscillator(), og = ctx.createGain();
+      o.type='triangle';
+      o.frequency.setValueAtTime(240 - i*40, t+off);
+      o.frequency.exponentialRampToValueAtTime(90, t+off+0.12);
+      og.gain.setValueAtTime(0.0001, t+off);
+      og.gain.exponentialRampToValueAtTime(0.19, t+off+0.008);
+      og.gain.exponentialRampToValueAtTime(0.0001, t+off+0.14);
+      o.connect(og); og.connect(ctx.destination);
+      o.start(t+off); o.stop(t+off+0.16);
+    });
+    var c = ctx.createBufferSource();
+    c.buffer = noiseBuffer(ctx, 0.9);
+    var hp2 = ctx.createBiquadFilter(); hp2.type='highpass'; hp2.frequency.value=5200;
+    var g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.0001, t+0.2);
+    g2.gain.exponentialRampToValueAtTime(0.13, t+0.21);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t+1.0);
+    c.connect(hp2); hp2.connect(g2); g2.connect(ctx.destination);
+    c.start(t+0.2); c.stop(t+1.1);
+  }
+  function sfxRaspberry(dur){
+    var ctx = audio(); if(!ctx) return;
+    var t = ctx.currentTime;
+    var o = ctx.createOscillator();
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(46, t+dur);
+
+    var flutter = ctx.createOscillator();
+    flutter.type='square';
+    flutter.frequency.setValueAtTime(34, t);
+    flutter.frequency.linearRampToValueAtTime(14, t+dur);
+    var fg = ctx.createGain(); fg.gain.value = 0.9;
+
+    var shape = ctx.createWaveShaper();
+    var curve = new Float32Array(1024);
+    for(var i=0;i<1024;i++){ var x = i/512 - 1; curve[i] = Math.tanh(x*5); }
+    shape.curve = curve;
+
+    var lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1500;
+    var amp = ctx.createGain(); amp.gain.value = 0.14;
+    var out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.3, t+0.05);
+    out.gain.setValueAtTime(0.3, t+dur*0.7);
+    out.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+
+    flutter.connect(fg); fg.connect(amp.gain);
+    o.connect(shape); shape.connect(lp); lp.connect(amp); amp.connect(out); out.connect(ctx.destination);
+    o.start(t); flutter.start(t);
+    o.stop(t+dur+0.05); flutter.stop(t+dur+0.05);
+  }
+  function sfxWhistleUp(){
+    var ctx = audio(); if(!ctx) return;
+    var t = ctx.currentTime;
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(420, t);
+    o.frequency.exponentialRampToValueAtTime(1500, t+0.5);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.08, t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t+0.55);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+0.6);
+  }
+
+  muteBtn.addEventListener('click', function(){
+    muted = !muted;
+    muteBtn.textContent = muted ? 'Sound off' : 'Sound on';
+    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    if(ac){ if(muted){ ac.suspend(); } else { ac.resume(); } }
+  });
+
+  /* ---------- canvases ---------- */
+  var back = document.getElementById('fxBack');
+  var front = document.getElementById('fxFront');
+  var bctx = back.getContext('2d');
+  var fctx = front.getContext('2d');
+  function sizeCanvases(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    [back, front].forEach(function(c){
+      c.width = Math.floor(window.innerWidth * dpr);
+      c.height = Math.floor(window.innerHeight * dpr);
+      c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+    });
+  }
+  sizeCanvases();
+  window.addEventListener('resize', function(){ setBase(); sizeCanvases(); });
+
+  var sparks = [], rockets = [], confetti = [];
+  var PALETTE = ['#FFE9A8','#D4A128','#FF8A00','#FF2E63','#7CFFCB','#6AC8FF','#C77DFF','#FFFFFF'];
+
+  function launchFirework(tx, ty, power){
+    rockets.push({
+      x: Math.max(30, Math.min(window.innerWidth-30, tx)),
+      y: window.innerHeight + 10,
+      ty: ty,
+      vy: -(9 + Math.random()*3),
+      color: PALETTE[(Math.random()*PALETTE.length)|0],
+      power: power
+    });
+    sfxWhistleUp();
+  }
+  function explode(x, y, color, power){
+    var n = Math.round(55 * power);
+    for(var i=0;i<n;i++){
+      var a = Math.random()*Math.PI*2;
+      var s = (1 + Math.random()*5) * power;
+      sparks.push({
+        x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s,
+        life:1, decay:0.008+Math.random()*0.014,
+        color: Math.random()<0.25 ? '#FFFFFF' : color,
+        size: 1.4 + Math.random()*1.8
+      });
+    }
+    sfxPop(Math.min(1.2, power));
+  }
+  function burstConfetti(x, y, amount){
+    for(var i=0;i<amount;i++){
+      var a = Math.random()*Math.PI*2;
+      var s = 3 + Math.random()*12;
+      confetti.push({
+        x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4,
+        w: 5+Math.random()*7, h: 8+Math.random()*10,
+        rot: Math.random()*Math.PI, vr:(Math.random()-0.5)*0.4,
+        color: PALETTE[(Math.random()*PALETTE.length)|0],
+        life: 1
+      });
+    }
+  }
+
+  function tick(){
+    var W = window.innerWidth, H = window.innerHeight;
+
+    bctx.globalCompositeOperation = 'destination-out';
+    bctx.fillStyle = 'rgba(0,0,0,0.22)';
+    bctx.fillRect(0,0,W,H);
+    bctx.globalCompositeOperation = 'lighter';
+
+    for(var i=rockets.length-1;i>=0;i--){
+      var r = rockets[i];
+      r.y += r.vy; r.vy += 0.12;
+      bctx.fillStyle = r.color;
+      bctx.beginPath(); bctx.arc(r.x, r.y, 2.4, 0, 6.29); bctx.fill();
+      if(r.y <= r.ty || r.vy >= 0){
+        explode(r.x, r.y, r.color, r.power);
+        rockets.splice(i,1);
+      }
+    }
+    for(var k=sparks.length-1;k>=0;k--){
+      var p = sparks[k];
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.055; p.vx *= 0.985; p.vy *= 0.985;
+      p.life -= p.decay;
+      if(p.life <= 0){ sparks.splice(k,1); continue; }
+      bctx.globalAlpha = Math.max(0, p.life);
+      bctx.fillStyle = p.color;
+      bctx.beginPath(); bctx.arc(p.x, p.y, p.size, 0, 6.29); bctx.fill();
+    }
+    bctx.globalAlpha = 1;
+    bctx.globalCompositeOperation = 'source-over';
+
+    fctx.clearRect(0,0,W,H);
+    for(var c=confetti.length-1;c>=0;c--){
+      var f = confetti[c];
+      f.x += f.vx; f.y += f.vy;
+      f.vy += 0.42; f.vx *= 0.99;
+      f.rot += f.vr;
+      f.life -= 0.006;
+      if(f.y > H + 60 || f.life <= 0){ confetti.splice(c,1); continue; }
+      fctx.save();
+      fctx.translate(f.x, f.y);
+      fctx.rotate(f.rot);
+      fctx.globalAlpha = Math.max(0, Math.min(1, f.life));
+      fctx.fillStyle = f.color;
+      fctx.fillRect(-f.w/2, -f.h/2, f.w, f.h * Math.abs(Math.cos(f.rot)));
+      fctx.restore();
+    }
+    fctx.globalAlpha = 1;
+
+    if(flying){ stepFlight(); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  /* ---------- effects ---------- */
+  function shake(){
+    if(reduced.matches) return;
+    stage.classList.remove('shake');
+    void stage.offsetWidth;
+    stage.classList.add('shake');
+  }
+  function flashBoom(){
+    boom.classList.remove('go'); void boom.offsetWidth; boom.classList.add('go');
+    if(reduced.matches) return;
+    strobe.classList.remove('go'); void strobe.offsetWidth; strobe.classList.add('go');
+  }
+  function btnCenter(){
+    var r = btn.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
+  function celebrate(power){
+    var c = btnCenter();
+    var n = power >= 1.4 ? 5 : (power >= 1 ? 3 : 2);
+    for(var i=0;i<n;i++){
+      (function(d){
+        setTimeout(function(){
+          launchFirework(
+            Math.random()*window.innerWidth,
+            window.innerHeight*0.10 + Math.random()*window.innerHeight*0.3,
+            power
+          );
+        }, d*130);
+      })(i);
+    }
+    burstConfetti(c.x, c.y, Math.round(65*power));
+    shake();
+    flashBoom();
+    sfxRimshot();
+  }
+
+  /* ---------- flight ---------- */
+  var fl = null;
+  function startFlight(){
+    flying = true;
+    btn.classList.add('flying');
+    hint.textContent = 'Catch it mid-air for a bonus.';
+    var ang = -Math.PI/2 + (Math.random()-0.5)*1.2;
+    var sp = 26 + Math.random()*10;
+    fl = {
+      tx:0, ty:0,
+      vx: Math.cos(ang)*sp, vy: Math.sin(ang)*sp,
+      scale: scale, t:0, dur:130, phase:'fly',
+      fromX:0, fromY:0, fromS:1, fromR:0
+    };
+    sfxRaspberry(2.1);
+  }
+  function stepFlight(){
+    var W = window.innerWidth, H = window.innerHeight;
+    var homeX = W/2, homeY = H*0.54;
+    var base = baseSize();
+
+    if(fl.phase === 'fly'){
+      fl.t++;
+      fl.vx += Math.sin(fl.t*0.34)*2.6 + (Math.random()-0.5)*2.2;
+      fl.vy += Math.cos(fl.t*0.29)*2.2 + (Math.random()-0.5)*2.2 + 0.28;
+      fl.vx *= 0.985; fl.vy *= 0.985;
+      fl.tx += fl.vx; fl.ty += fl.vy;
+
+      var k = fl.t / fl.dur;
+      fl.scale = scale + (1 - scale) * Math.min(1, k*k*(3-2*k));
+
+      var rad = (base * fl.scale)/2;
+      var minX = -homeX + rad, maxX = W - homeX - rad;
+      var minY = -homeY + rad, maxY = H - homeY - rad;
+      if(minX > maxX){ minX = maxX = 0; }
+      if(minY > maxY){ minY = maxY = 0; }
+      if(fl.tx < minX){ fl.tx = minX; fl.vx = Math.abs(fl.vx)*0.86; sfxPop(0.22); }
+      if(fl.tx > maxX){ fl.tx = maxX; fl.vx = -Math.abs(fl.vx)*0.86; sfxPop(0.22); }
+      if(fl.ty < minY){ fl.ty = minY; fl.vy = Math.abs(fl.vy)*0.86; }
+      if(fl.ty > maxY){ fl.ty = maxY; fl.vy = -Math.abs(fl.vy)*0.86; sfxPop(0.22); }
+
+      if(fl.t % 2 === 0){
+        burstConfetti(homeX + fl.tx - fl.vx*2, homeY + fl.ty - fl.vy*2, 2);
+      }
+
+      btn.style.setProperty('--tx', fl.tx.toFixed(1)+'px');
+      btn.style.setProperty('--ty', fl.ty.toFixed(1)+'px');
+      btn.style.setProperty('--sc', fl.scale.toFixed(3));
+      btn.style.setProperty('--rot', (fl.tx*0.6 + fl.t*7).toFixed(1)+'deg');
+
+      if(fl.t >= fl.dur){
+        fl.phase = 'home';
+        fl.fromX = fl.tx; fl.fromY = fl.ty; fl.fromS = fl.scale;
+        fl.fromR = ((fl.tx*0.6 + fl.dur*7) % 360);
+        fl.t = 0;
+      }
+      return;
+    }
+
+    fl.t++;
+    var pr = Math.min(1, fl.t/34);
+    var e = 1 - Math.pow(1-pr, 3);
+    btn.style.setProperty('--tx', (fl.fromX*(1-e)).toFixed(1)+'px');
+    btn.style.setProperty('--ty', (fl.fromY*(1-e)).toFixed(1)+'px');
+    btn.style.setProperty('--sc', (fl.fromS + (1-fl.fromS)*e).toFixed(3));
+    btn.style.setProperty('--rot', (fl.fromR*(1-e)).toFixed(1)+'deg');
+
+    if(pr >= 1){
+      flying = false; fl = null; scale = 1;
+      btn.classList.remove('flying');
+      btn.style.setProperty('--tx','0px');
+      btn.style.setProperty('--ty','0px');
+      btn.style.setProperty('--sc','1');
+      btn.style.setProperty('--rot','0deg');
+      hint.textContent = 'It inflates. Eventually it lets go.';
+      sfxPop(0.45);
+    }
+  }
+
+  /* ---------- click ---------- */
+  btn.addEventListener('click', function(){
+    if(flying){
+      if(fl && fl.phase === 'fly'){
+        showJoke();
+        celebrate(1.7);
+        fl.vx = (Math.random()-0.5)*40;
+        fl.vy = -22 - Math.random()*12;
+        hint.textContent = 'Caught it. Show-off.';
+      }
+      return;
+    }
+
+    showJoke();
+
+    var cap = capScale();
+    if(scale * GROW >= cap){
+      scale = Math.min(scale * GROW, cap);
+      btn.style.setProperty('--sc', scale.toFixed(3));
+      celebrate(1.5);
+      startFlight();
+      return;
+    }
+
+    scale *= GROW;
+    btn.style.setProperty('--sc', scale.toFixed(3));
+    celebrate(scale > 1.6 ? 1.1 : 0.85);
+  });
+})();
+</script>
